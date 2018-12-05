@@ -47,12 +47,6 @@ public:
 	};
 
 private:
-	void InitScene();
-	void GeneratePlatform();
-	void UpdatePlatform();
-	void CreateLine(const double x1, const double y1, const double z1, const double x2, const double y2, const double z2, vtkSmartPointer<vtkPoints> points, vtkSmartPointer<vtkCellArray> cells);
-
-private:
 	bool m_IsInited;
 	GLuint m_fbo;
 	GLuint m_tex;
