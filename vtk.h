@@ -2,7 +2,7 @@
 #include <vtkActor.h>
 #include <vtkCellPicker.h>
 #include <vtkCubeSource.h>
-#include <vtkExternalOpenGLRenderWindow.h>
+#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkGenericRenderWindowInteractor.h>
 #include <vtkObject.h>
 #include <vtkPoints.h>
@@ -17,23 +17,23 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkActor.h>
 #include <vtkSphereSource.h>
-#include <GLFW/glfw3.h>
-
-class MyRW : public vtkExternalOpenGLRenderWindow
-{
-public:
-	void SetFBO(unsigned int fbo, unsigned int tex, unsigned int w, unsigned int h);
-};
 
 class MyVTKRenderer
 {
 public:
-    MyVTKRenderer(GLFWwindow * win, unsigned int fbo, unsigned int tex, unsigned int w, unsigned int h);
+    MyVTKRenderer();
     ~MyVTKRenderer() {}
-    void render(void);
+	void UpdateSize(unsigned int w, unsigned int h);
+    void Render(void);
 
 private:
-    MyRW* m_vtkRenderWindow;
+	bool m_IsInited;
+	GLuint m_fbo;
+	GLuint m_tex;
+	GLuint m_rbo;
+	unsigned int m_Width;
+	unsigned int m_Height;
+    vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_vtkRenderWindow;
     vtkSmartPointer<vtkRenderer> m_renderer;
     vtkSmartPointer<vtkGenericRenderWindowInteractor> m_vtkRenderWindowInteractor;
     vtkSmartPointer<vtkCellPicker> m_picker;

@@ -1,61 +1,35 @@
 #include "vtk.h"
-#include <GLFW/glfw3.h>
 
-void MyRW::SetFBO(unsigned int fbo, unsigned int tex, unsigned int w, unsigned int h)
+MyVTKRenderer::MyVTKRenderer()
+	:m_IsInited(false)
+	,m_Width(0)
+	,m_Height(0)
+	,m_fbo(0)
+	,m_tex(0)
+	,m_rbo(0)
 {
-
-	this->SetBackLeftBuffer(GL_COLOR_ATTACHMENT0);
-	this->SetFrontLeftBuffer(GL_COLOR_ATTACHMENT0);
-	this->SetBackBuffer(GL_COLOR_ATTACHMENT0);
-	this->SetFrontBuffer(GL_COLOR_ATTACHMENT0);
-
-	this->Size[0] = w;
-	this->Size[1] = h;
-	this->NumberOfFrameBuffers = 1;
-	this->DepthRenderBufferObject = 0;
-	this->FrameBufferObject = static_cast<unsigned int>(fbo);
-	this->TextureObjects[0] = static_cast<unsigned int>(tex);
-	this->OffScreenRendering = 1;
-	this->OffScreenUseFrameBuffer = 1;
-	this->Modified();
-}
-
-static void MakeCurrentCallback(vtkObject* vtkNotUsed(caller),
-	long unsigned int vtkNotUsed(eventId),
-	void * clientData,
-	void * vtkNotUsed(callData))
-{
-	glfwMakeContextCurrent((GLFWwindow *)clientData);
-}
-
-MyVTKRenderer::MyVTKRenderer(GLFWwindow * win, unsigned int fbo, unsigned int tex, unsigned int w, unsigned int h)
-{
-    // Renderer
-	m_vtkRenderWindow = new MyRW;
-	m_renderer = vtkSmartPointer<vtkRenderer>::New();
-	m_renderer->SetBackground(1, 1, 1);
-	m_vtkRenderWindow->AddRenderer(m_renderer);
-
 	// add the actors to the scene
 	vtkSmartPointer<vtkSphereSource> sphereSource = vtkSmartPointer<vtkSphereSource>::New();
 	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	mapper->SetInputConnection(sphereSource->GetOutputPort());
 	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
 	actor->SetMapper(mapper);
-	m_renderer->AddActor(actor);
 
-	vtkNew<vtkCallbackCommand> callback;
-	callback->SetCallback(MakeCurrentCallback);
-	callback->SetClientData(win);
-	m_vtkRenderWindow->AddObserver(vtkCommand::WindowMakeCurrentEvent, callback.GetPointer());
+    // Renderer
+	m_vtkRenderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+	m_renderer = vtkSmartPointer<vtkRenderer>::New();
+	m_renderer->SetBackground(1, 1, 1);
+	m_vtkRenderWindow->AddRenderer(m_renderer);
+
+	m_renderer->AddActor(actor);
+	m_renderer->GetActiveCamera()->SetPosition(0, 0, 10);
+	m_renderer->GetActiveCamera()->SetFocalPoint(0, 0, 0);
+	m_renderer->GetActiveCamera()->SetViewUp(0, 1, 0);
 
 	// Interactor
 	m_vtkRenderWindowInteractor = vtkSmartPointer<vtkGenericRenderWindowInteractor>::New();
 	m_vtkRenderWindowInteractor->EnableRenderOff();
 	m_vtkRenderWindow->SetInteractor(m_vtkRenderWindowInteractor);
-
-	// Initialize the OpenGL context for the renderer
-	m_vtkRenderWindow->OpenGLInitContext();
 
 	// Interactor Style
 	vtkSmartPointer<vtkInteractorStyleTrackballCamera> style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
@@ -66,17 +40,89 @@ MyVTKRenderer::MyVTKRenderer(GLFWwindow * win, unsigned int fbo, unsigned int te
 	// Picker
 	m_picker = vtkSmartPointer<vtkCellPicker>::New();
 	m_picker->SetTolerance(0.0);
-
-	m_vtkRenderWindow->SetFBO(fbo, tex, w, h);
 }
 
-void MyVTKRenderer::render(void)
+void MyVTKRenderer::UpdateSize(unsigned int w, unsigned int h)
 {
-	m_vtkRenderWindow->SetSize(800, 600);
-	m_vtkRenderWindow->PushState();
-	m_vtkRenderWindow->OpenGLInitState();
-	m_vtkRenderWindow->MakeCurrent();
-	m_vtkRenderWindow->Start();
-	m_vtkRenderWindow->Render();
-	m_vtkRenderWindow->PopState();
+	if (w == m_Width && h == m_Height)
+		return;
+
+	if (w == 0 || h == 0)
+		return;
+
+	m_Width = w;
+	m_Height = h;
+
+	// resize the render window
+	m_vtkRenderWindow->SetSize(m_Width, m_Height);
+	m_vtkRenderWindow->FullScreenOn();
+	m_vtkRenderWindow->OffScreenRenderingOn();
+	//m_vtkRenderWindow->SetMultiSamples(0);
+	m_vtkRenderWindow->Modified();
+	m_vtkRenderWindowInteractor->UpdateSize(m_Width, m_Height);
+	m_vtkRenderWindowInteractor->Modified();
+	m_IsInited = false;
+
+	// delete old fbo
+	glDeleteBuffers(1, &m_fbo);
+	glDeleteBuffers(1, &m_rbo);
+	glDeleteTextures(1, &m_tex);
+
+	// create a texture object
+	glGenTextures(1, &m_tex);
+	glBindTexture(GL_TEXTURE_2D, m_tex);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_Width, m_Height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	// create a renderbuffer object to store depth info
+	glGenRenderbuffers(1, &m_rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, m_rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, m_Width, m_Height);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	// create a framebuffer object
+	glGenFramebuffers(1, &m_fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_tex, 0);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_rbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+}
+
+void MyVTKRenderer::Render(void)
+{
+
+	if (m_fbo > 0) {
+		glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+		if (!m_IsInited) {
+			m_vtkRenderWindow->InitializeFromCurrentContext();
+			m_IsInited = true;
+		}
+		m_renderer->GetActiveCamera()->Roll(2);
+		m_vtkRenderWindow->Render();
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+
+	// these has to be called, otherwise imgui 
+	// wouldn't show up
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
+	// use the texture
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, m_tex);
+	glBegin(GL_QUADS);
+	glTexCoord2f(0.0, 0.0); glVertex3f(-1.0, -1.0, 0);
+	glTexCoord2f(1.0, 0.0); glVertex3f(1.0, -1.0, 0);
+	glTexCoord2f(1.0, 1.0); glVertex3f(1.0, 1.0, 0);
+	glTexCoord2f(0.0, 1.0); glVertex3f(-1.0, 1.0, 0);
+	glEnd();
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glDisable(GL_TEXTURE_2D);
 }

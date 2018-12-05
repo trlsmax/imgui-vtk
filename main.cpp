@@ -27,11 +27,14 @@ static void glfw_error_callback(int error, const char* description)
 
 int main(int, char**)
 {
+	int display_w = 800;
+	int display_h = 600;
+
     // Setup window
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
         return 1;
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Dear ImGui GLFW+OpenGL2 example", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(display_w, display_h, "Dear ImGui GLFW+OpenGL2 example", NULL, NULL);
     if (window == NULL)
         return 1;
     glfwMakeContextCurrent(window);
@@ -73,35 +76,7 @@ int main(int, char**)
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-	unsigned int m_Width = 800;
-	unsigned int m_Height = 600;
-	unsigned int m_tex;
-	// create a texture object
-	glGenTextures(1, &m_tex);
-	glBindTexture(GL_TEXTURE_2D, m_tex);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_Width, m_Height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	// create a renderbuffer object to store depth info
-	GLuint m_rbo;
-	glGenRenderbuffers(1, &m_rbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, m_rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, m_Width, m_Height);
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-	unsigned int m_fbo;
-	// create a framebuffer object
-	glGenFramebuffers(1, &m_fbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_tex, 0);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_rbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    MyVTKRenderer * myvtk = new MyVTKRenderer(window, m_fbo, m_tex, m_Width, m_Height);
+    MyVTKRenderer * myvtk = new MyVTKRenderer;
 
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -157,38 +132,20 @@ int main(int, char**)
 
         // Rendering
         ImGui::Render();
-        int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
 
         glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// render into FBO
-		glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
-        myvtk->render();
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-		// use the texture
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, m_tex);
-		unsigned int e = glGetError();
-		glColor4f(1, 1, 1, 1);
-		glBegin(GL_QUADS);
-		glTexCoord2f(0.0, 0.0); glVertex3f(-1.0, -1.0, 0);
-		glTexCoord2f(1.0, 0.0); glVertex3f(1.0, -1.0, 0);
-		glTexCoord2f(1.0, 1.0); glVertex3f(1.0, 1.0, 0);
-		glTexCoord2f(0.0, 1.0); glVertex3f(-1.0, 1.0, 0);
-		glEnd();
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glDisable(GL_TEXTURE_2D);
+		myvtk->UpdateSize(display_w, display_h);
+        myvtk->Render();
 
         //glUseProgram(0); // You may want this if using this code in an OpenGL 3+ context where shaders may be bound, but prefer using the GL3+ code.
         ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 
         glfwMakeContextCurrent(window);
         glfwSwapBuffers(window);
-
     }
 
     // Cleanup
