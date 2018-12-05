@@ -12,7 +12,7 @@ MyVTKRenderer::MyVTKRenderer()
 	vtkSmartPointer<vtkSphereSource> sphereSource = vtkSmartPointer<vtkSphereSource>::New();
 	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	mapper->SetInputConnection(sphereSource->GetOutputPort());
-	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	actor = vtkSmartPointer<vtkActor>::New();
 	actor->SetMapper(mapper);
 
     // Renderer
@@ -42,6 +42,13 @@ MyVTKRenderer::MyVTKRenderer()
 	m_picker->SetTolerance(0.0);
 }
 
+MyVTKRenderer::~MyVTKRenderer()
+{
+	glDeleteBuffers(1, &m_fbo);
+	glDeleteBuffers(1, &m_rbo);
+	glDeleteTextures(1, &m_tex);
+}
+
 void MyVTKRenderer::UpdateSize(unsigned int w, unsigned int h)
 {
 	if (w == m_Width && h == m_Height)
@@ -54,6 +61,7 @@ void MyVTKRenderer::UpdateSize(unsigned int w, unsigned int h)
 	m_Height = h;
 
 	// resize the render window
+	m_renderer->RemoveActor(actor);
 	m_vtkRenderWindow->SetSize(m_Width, m_Height);
 	m_vtkRenderWindow->FullScreenOn();
 	m_vtkRenderWindow->OffScreenRenderingOn();
@@ -61,6 +69,7 @@ void MyVTKRenderer::UpdateSize(unsigned int w, unsigned int h)
 	m_vtkRenderWindow->Modified();
 	m_vtkRenderWindowInteractor->UpdateSize(m_Width, m_Height);
 	m_vtkRenderWindowInteractor->Modified();
+	m_renderer->AddActor(actor);
 	m_IsInited = false;
 
 	// delete old fbo
@@ -71,8 +80,8 @@ void MyVTKRenderer::UpdateSize(unsigned int w, unsigned int h)
 	// create a texture object
 	glGenTextures(1, &m_tex);
 	glBindTexture(GL_TEXTURE_2D, m_tex);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	//glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_Width, m_Height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -103,8 +112,12 @@ void MyVTKRenderer::Render(void)
 			m_vtkRenderWindow->InitializeFromCurrentContext();
 			m_IsInited = true;
 		}
-		m_renderer->GetActiveCamera()->Roll(2);
+
+		m_vtkRenderWindow->PushState();
+		m_vtkRenderWindow->OpenGLInitState();
+		glUseProgram(0);
 		m_vtkRenderWindow->Render();
+		m_vtkRenderWindow->PopState();
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
@@ -125,4 +138,32 @@ void MyVTKRenderer::Render(void)
 	glEnd();
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glDisable(GL_TEXTURE_2D);
+}
+
+void MyVTKRenderer::MouseButtonCallback(double xpos, double ypos, int button, int action, bool ctrl, bool shift, bool dclick)
+{
+	m_vtkRenderWindowInteractor->SetEventInformationFlipY(xpos, ypos, ctrl, shift, dclick);
+
+	if (button == MOUSE_BUTTON_LEFT && action == BUTTON_PRESS)
+		m_vtkRenderWindowInteractor->InvokeEvent(vtkCommand::LeftButtonPressEvent, nullptr);
+	if (button == MOUSE_BUTTON_LEFT && action == BUTTON_RELEASE)
+		m_vtkRenderWindowInteractor->InvokeEvent(vtkCommand::LeftButtonReleaseEvent, nullptr);
+	if (button == MOUSE_BUTTON_RIGHT && action == BUTTON_PRESS)
+		m_vtkRenderWindowInteractor->InvokeEvent(vtkCommand::RightButtonPressEvent, nullptr);
+	if (button == MOUSE_BUTTON_RIGHT && action == BUTTON_RELEASE)
+		m_vtkRenderWindowInteractor->InvokeEvent(vtkCommand::RightButtonReleaseEvent, nullptr);
+}
+
+void MyVTKRenderer::MousePositionCallback(double xpos, double ypos, bool ctrl, bool shift)
+{
+	m_vtkRenderWindowInteractor->SetEventInformationFlipY(xpos, ypos, ctrl, shift, 0);
+	m_vtkRenderWindowInteractor->InvokeEvent(vtkCommand::MouseMoveEvent, nullptr);
+}
+
+void MyVTKRenderer::MouseWheelCallback(double xoffset, double yoffset)
+{
+	if (yoffset > 0)
+		m_vtkRenderWindowInteractor->InvokeEvent(vtkCommand::MouseWheelForwardEvent, nullptr);
+	else if (yoffset < 0)
+		m_vtkRenderWindowInteractor->InvokeEvent(vtkCommand::MouseWheelBackwardEvent, nullptr);
 }

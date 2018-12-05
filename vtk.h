@@ -17,14 +17,40 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkActor.h>
 #include <vtkSphereSource.h>
+#include <vtkAxesActor.h>
+#include <vtkCaptionActor2D.h>
+#include <vtkTextActor.h>
+#include <vtkTextProperty.h>
+#include <vtkCubeSource.h>
+#include <vtkPolyLine.h>
 
 class MyVTKRenderer
 {
 public:
     MyVTKRenderer();
-    ~MyVTKRenderer() {}
+	~MyVTKRenderer();
 	void UpdateSize(unsigned int w, unsigned int h);
     void Render(void);
+	void MouseButtonCallback(double xpos, double ypos, int button, int action, bool ctrl, bool shift, bool dclick);
+	void MousePositionCallback(double xpos, double ypos, bool ctrl, bool shift);
+	void MouseWheelCallback(double xoffset, double yoffset);
+
+public:
+	enum {
+		MOUSE_BUTTON_LEFT = 0,
+		MOUSE_BUTTON_RIGHT,
+		MOUSE_BUTTON_MIDDLE,
+	};
+	enum {
+		BUTTON_RELEASE = 0,
+		BUTTON_PRESS,
+	};
+
+private:
+	void InitScene();
+	void GeneratePlatform();
+	void UpdatePlatform();
+	void CreateLine(const double x1, const double y1, const double z1, const double x2, const double y2, const double z2, vtkSmartPointer<vtkPoints> points, vtkSmartPointer<vtkCellArray> cells);
 
 private:
 	bool m_IsInited;
@@ -33,9 +59,11 @@ private:
 	GLuint m_rbo;
 	unsigned int m_Width;
 	unsigned int m_Height;
+
     vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_vtkRenderWindow;
     vtkSmartPointer<vtkRenderer> m_renderer;
     vtkSmartPointer<vtkGenericRenderWindowInteractor> m_vtkRenderWindowInteractor;
     vtkSmartPointer<vtkCellPicker> m_picker;
+	vtkSmartPointer<vtkActor> actor;
 };
 

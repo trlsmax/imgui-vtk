@@ -13,6 +13,8 @@
 #include <stdio.h>
 #include <GLFW/glfw3.h>
 
+MyVTKRenderer * myvtk = nullptr;
+
 // [Win32] Our example includes a copy of glfw3.lib pre-compiled with VS2010 to maximize ease of testing and compatibility with old VS compilers.
 // To link with VS2010-era libraries, VS2015+ requires linking with legacy_stdio_definitions.lib, which we do using this pragma. 
 // Your own project should not be affected, as you are likely to link with a newer binary of GLFW that is adequate for your version of Visual Studio.
@@ -25,8 +27,37 @@ static void glfw_error_callback(int error, const char* description)
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
+static void glfw_mouse_wheel(GLFWwindow* window, double xoffset, double yoffset)
+{
+	if (ImGui::IsAnyWindowHovered())
+		return;
+	myvtk->MouseWheelCallback(xoffset, yoffset);
+}
+
+static void glfw_mouse_position(GLFWwindow* window, double xpos, double ypos)
+{
+	if (ImGui::IsAnyWindowHovered())
+		return;
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+		bool ctrl = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS;
+		bool shit = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS;
+		myvtk->MousePositionCallback(xpos, ypos, ctrl, shit);
+	}
+}
+
+void glfw_mouse_button(GLFWwindow* window, int button, int action, int mods)
+{
+	if (ImGui::IsAnyWindowHovered())
+		return;
+	double xpos, ypos;
+	glfwGetCursorPos(window, &xpos, &ypos);
+	myvtk->MouseButtonCallback(xpos, ypos, button, action, mods == GLFW_MOD_CONTROL, mods == GLFW_MOD_SHIFT, false);
+}
+
 int main(int, char**)
 {
+	myvtk = new MyVTKRenderer;
+
 	int display_w = 800;
 	int display_h = 600;
 
@@ -37,6 +68,11 @@ int main(int, char**)
     GLFWwindow* window = glfwCreateWindow(display_w, display_h, "Dear ImGui GLFW+OpenGL2 example", NULL, NULL);
     if (window == NULL)
         return 1;
+
+	glfwSetMouseButtonCallback(window, glfw_mouse_button);
+	glfwSetScrollCallback(window, glfw_mouse_wheel);
+	glfwSetCursorPosCallback(window, glfw_mouse_position);
+
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // Enable vsync
 
@@ -75,8 +111,6 @@ int main(int, char**)
     bool show_demo_window = true;
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
-    MyVTKRenderer * myvtk = new MyVTKRenderer;
 
     // Main loop
     while (!glfwWindowShouldClose(window))
