@@ -36,7 +36,16 @@ include_directories(${OPENGL_INCLUDE_DIRS})
 
 
 find_package(VTK REQUIRED)
-include(${VTK_USE_FILE})
+if (VTK_VERSION VERSION_LESS "8.90.0")
+  # old system
+  include(${VTK_USE_FILE})
+else ()
+  # vtk_module_autoinit is needed
+  vtk_module_autoinit(
+    TARGETS ${APP_TARGET}
+    MODULES ${VTK_LIBRARIES}
+    )
+endif () 
 
 target_link_libraries(
         ${APP_TARGET}
