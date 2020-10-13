@@ -9,9 +9,17 @@ set(APP_VERSION_MINOR 0)
 
 set(APP_TARGET imgui-vtk)
 
-add_subdirectory(imgui)
-include_directories(${PROJECT_SOURCE_DIR} imgui)
-add_executable(${APP_TARGET} main.cpp vtk.cpp)
+include_directories(${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/imgui)
+add_executable(${APP_TARGET}
+main.cpp
+vtk.cpp
+imgui/imgui.cpp
+imgui/imgui_demo.cpp
+imgui/imgui_draw.cpp
+imgui/imgui_impl_glfw.cpp
+imgui/imgui_impl_opengl3.cpp
+imgui/imgui_widgets.cpp
+)
 
 if (APPLE)
     find_library(COCOA_LIBRARY Cocoa)
@@ -26,7 +34,7 @@ if (WIN32)
 endif (WIN32)
 
 # glfw
-find_package(glfw3 REQUIRED)
+find_package(GLFW3 REQUIRED)
 include_directories(${GLFW3_INCLUDE_DIR})
 link_libraries(${GLFW_LIBRARY_DIRS})
 
@@ -53,5 +61,4 @@ target_link_libraries(
         ${OPENGL_LIBRARIES}
         ${EXTRA_LIBS}
         ${VTK_LIBRARIES}
-        imgui
 )
