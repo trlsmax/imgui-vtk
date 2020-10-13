@@ -2,13 +2,6 @@
 * @file vtkDearImGuiVport.hxx
 * 
 * @brief vtkDearImGuiVport
-*   1. An effort to incorporate VTK's dataset visualization capabilities with versatility of DearImGUI.
-*   2. It is expected that usage of this filter will be a mix of the usual VTK's style(pipeline setup) and DearImGUI's immediate-style.
-*   3. This is meant to be as non-intrusive as possible to existing projects using DearImGUI, 
-*       yet capable of building a full-fledged app with vtk + ImGUi + vtkDearImGuiVport. 
-*   4. vtkDearImGuiVport does not use a concrete platform windowing system such as Qt/Glfw/Sdl/Xwindow/Cocoa/Win32/wx/Gtk.
-*   5. Instead, it renders into a DearImGui window with a call to ImGui::Image((void*)id, ..., ...). A viewport.
-*   6. Interactions are hooked up through vtkDearImGuiInteractor.
 * 
 *
 * Usage:
