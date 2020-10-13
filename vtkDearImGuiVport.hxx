@@ -2,7 +2,6 @@
 * @file vtkDearImGuiVport.hxx
 * 
 * @brief vtkDearImGuiVport
-* 
 *
 * Usage:
 * 1.[Old] Set up a pipeline up to the stage where you've got your actors ready.
@@ -19,3 +18,5 @@
 * 4. Proceed to grab the internal texture object's handle and pipe it to DearImGUI as an image.
 * 
 */
+
+#include <vtkExternal>
