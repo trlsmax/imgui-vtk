@@ -19,4 +19,52 @@
 * 
 */
 
-#include <vtkExternal>
+#ifndef vtkDearImGuiViewPort_h
+#define vtkDearImGuiViewPort_h
+
+#include <vtkGenericOpenGLRenderWindow.h>
+#include "vtkRenderingExternalModule.h" // For export macro
+
+class VTKRENDERINGEXTERNAL_EXPORT vtkDearImGuiViewPort
+  : public vtkGenericOpenGLRenderWindow
+{
+public:
+  static vtkDearImGuiViewPort* New();
+  vtkTypeMacro(vtkDearImGuiViewPort, vtkGenericOpenGLRenderWindow);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
+
+  vtkGetMacro(Title, std::string);
+  vtkSetMacro(Title, std::string);
+  
+  vtkGetVector2Macro(Size, int);
+  vtkSetVector2Macro(Size, int);
+
+  /**
+   * @brief Begin the rendering process using existing content, existing windowing system.
+   *        Also a call to ImGui::Begin.
+  */
+  void Start(void) override;
+
+  /**
+   * @brief Tells if this window is the current graphics context for the calling thread.
+  */
+  bool IsCurrent(void) override;
+
+  /**
+   * @brief Render texture to ImGui ViewPort.
+  */
+  void Frame(void) override;
+
+protected:
+  vtkDearImGuiViewPort();
+  ~vtkDearImGuiViewPort();
+
+  std::string Title;
+  int Size[2];
+
+private:
+  vtkDearImGuiViewPort(const vtkDearImGuiViewPort&) = delete;
+  void operator=(const vtkDearImGuiViewPort&) = delete;
+};
+
+#endif // vtkDearImGuiViewPort_h

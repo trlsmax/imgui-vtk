@@ -21,6 +21,7 @@ find_package(VTK COMPONENTS
   vtkRenderingFreeType
   vtkRenderingGL2PSOpenGL2
   vtkRenderingOpenGL2
+  vtkRenderingExternal
   QUIET
 )
 
@@ -47,65 +48,35 @@ target_sources (${LIBNAME}
     "${${PROJECT_NAME}_SOURCE_DIR}/imgui/imgui.cpp"
     "${${PROJECT_NAME}_SOURCE_DIR}/imgui/imgui_demo.cpp"
     "${${PROJECT_NAME}_SOURCE_DIR}/imgui/imgui_draw.cpp"
-    "${${PROJECT_NAME}_SOURCE_DIR}/imgui/imgui_impl_glfw.cpp"
-    "${${PROJECT_NAME}_SOURCE_DIR}/imgui/imgui_impl_opengl3.cpp"
     "${${PROJECT_NAME}_SOURCE_DIR}/imgui/imgui_widgets.cpp"
 )
 
 target_include_directories (${LIBNAME}
-  INTERFACE
+  PUBLIC
     "${${PROJECT_NAME}_SOURCE_DIR}"
     "${${PROJECT_NAME}_SOURCE_DIR}/imgui"
 )
 
-if (UNIX)
-  if (APPLE)
-      target_link_libraries (
-         ${LIBNAME}
-          PUBLIC
-              "-framework Cocoa"
-              "-framework IOKit"
-              "-framework CoreVideo"
-              glfw
-              ${VTK_LIBRARIES}
-      )
-  else ()
-      target_link_libraries (
-         ${LIBNAME}
-          PUBLIC
-              ${CMAKE_THREAD_LIBS_INIT}
-              ${X11_LIBRARIES}
-              ${CMAKE_DL_LIBS}
-              glfw 
-              ${VTK_LIBRARIES}
-      )
-  endif()
-else ()
-  target_link_libraries (
-     ${LIBNAME}
-      PUBLIC
-          glfw
-          ${VTK_LIBRARIES}
-  )
-endif()
+target_link_libraries (
+    ${LIBNAME}
+    PUBLIC
+        ${VTK_LIBRARIES}
+)
 
-if (APPLE)
-  add_executable (${EXECNAME} MACOSX_BUNDLE)
-elseif (WIN32)
-  add_executable (${EXECNAME} WIN32)
-endif ()
+add_executable (${EXECNAME})
 
 target_sources (${EXECNAME}
   PRIVATE
     "${${PROJECT_NAME}_SOURCE_DIR}/main.cpp"
+    "${${PROJECT_NAME}_SOURCE_DIR}/imgui/imgui_impl_glfw.cpp"
+    "${${PROJECT_NAME}_SOURCE_DIR}/imgui/imgui_impl_opengl3.cpp"
+    "${${PROJECT_NAME}_SOURCE_DIR}/vtkimgui.cxx"
 )
-
 
 if (UNIX)
   if (APPLE)
       target_link_libraries (
          ${EXECNAME}
-          PUBLIC
               "-framework Cocoa"
               "-framework IOKit"
               "-framework CoreVideo"
@@ -116,11 +87,10 @@ if (UNIX)
   else ()
       target_link_libraries (
          ${EXECNAME}
-          PUBLIC
               ${CMAKE_THREAD_LIBS_INIT}
               ${X11_LIBRARIES}
               ${CMAKE_DL_LIBS}
-              glfw 
+              glfw
               ${VTK_LIBRARIES}
               ${LIBNAME}
       )
@@ -128,8 +98,8 @@ if (UNIX)
 else ()
   target_link_libraries (
      ${EXECNAME}
-      PUBLIC
           glfw
+          OpenGL::GL
           ${VTK_LIBRARIES}
           ${LIBNAME}
   )

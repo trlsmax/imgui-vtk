@@ -2,7 +2,12 @@
 // If you are new to dear imgui, see examples/README.txt and documentation at the top of imgui.cpp.
 // (GLFW is a cross-platform general purpose library for handling windows, inputs, OpenGL/Vulkan/Metal graphics context creation, etc.)
 
-#include "vtk.h"
+#include "vtkimgui.h"
+#include <vtkSmartPointer.h>
+#include <vtkSphereSource.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkActor.h>
+#include <vtkRenderer.h>
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -80,7 +85,19 @@ static void glfw_error_callback(int error, const char* description)
 
 int main(int, char**)
 {
-  //myvtk = new MyVTKRenderer;
+
+  // Setup pipeline
+  auto sphereSrc = vtkSmartPointer<vtkSphereSource>::New();
+  auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  auto actor = vtkSmartPointer<vtkActor>::New();
+  sphereSrc->SetPhiResolution(100);
+  sphereSrc->SetThetaResolution(100);
+  mapper->SetInputConnection(sphereSrc->GetOutputPort());
+  actor->SetMapper(mapper);
+  
+  auto vtkRenWin = new VtkDearImGui;
+  vtkRenWin->AddActor(actor);
+
   // Setup window
   glfwSetErrorCallback(glfw_error_callback);
   if (!glfwInit())
@@ -222,18 +239,18 @@ int main(int, char**)
         show_another_window = false;
       ImGui::End();
     }
-
     // Rendering
-    ImGui::Render();
+
     int display_w, display_h;
     glfwGetFramebufferSize(window, &display_w, &display_h);
     glViewport(0, 0, display_w, display_h);
+    glEnable(GL_SCISSOR_TEST); // required!
+    glScissor(0, 0, display_w, display_h); // required!
     glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    //myvtk->UpdateSize(display_w, display_h);
-    //myvtk->Render();
-
+    vtkRenWin->Render();
+    ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     glfwSwapBuffers(window);
