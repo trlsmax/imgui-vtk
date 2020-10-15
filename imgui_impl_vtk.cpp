@@ -89,48 +89,10 @@ static GLuint g_RBOHdl = 0;
 static GLuint g_TexHdl = 0;
 static bool g_Show = true;
 
-static void IsCurrentCallbackFn(
-  vtkObject* caller,
-  long unsigned int eventId,
-  void* clientData,
-  void* callData) 
-{
-  bool * isCurrent = static_cast<bool*>(callData);
-  *isCurrent = true;
-}
-
-static void ProcessEvents()
-{
-  if (!ImGui::IsWindowFocused())
-    return; 
-
-  ImGuiIO& io = ImGui::GetIO(); (void)io;
-  io.ConfigWindowsMoveFromTitleBarOnly = true;
-  ImVec2 wPos = ImGui::GetWindowPos();
-
-  double xpos = static_cast<double>(io.MousePos[0]) - static_cast<double>(ImGui::GetWindowPos().x);
-  double ypos = static_cast<double>(io.MousePos[1]) - static_cast<double>(ImGui::GetWindowPos().y);
-  int ctrl = static_cast<int>(io.KeyCtrl);
-  int shift = static_cast<int>(io.KeyShift);
-  bool dclick = io.MouseDoubleClicked[0] || io.MouseDoubleClicked[1] || io.MouseDoubleClicked[2];
-
-  g_Interactor->SetEventInformationFlipY(xpos, ypos, ctrl, shift, dclick);
-  
-  if (io.MouseClicked[ImGuiMouseButton_Left])
-    g_Interactor->InvokeEvent(vtkCommand::LeftButtonPressEvent, nullptr);
-  else if (io.MouseReleased[ImGuiMouseButton_Left])
-    g_Interactor->InvokeEvent(vtkCommand::LeftButtonReleaseEvent, nullptr);
-  else if (io.MouseClicked[ImGuiMouseButton_Right])
-    g_Interactor->InvokeEvent(vtkCommand::RightButtonPressEvent, nullptr);
-  else if (io.MouseReleased[ImGuiMouseButton_Right])
-    g_Interactor->InvokeEvent(vtkCommand::RightButtonReleaseEvent, nullptr);
-  else if (io.MouseWheel > 0)
-    g_Interactor->InvokeEvent(vtkCommand::MouseWheelForwardEvent, nullptr);
-  else if (io.MouseWheel < 0)
-    g_Interactor->InvokeEvent(vtkCommand::MouseWheelBackwardEvent, nullptr);
-
-  g_Interactor->InvokeEvent(vtkCommand::MouseMoveEvent, nullptr);
-}
+// forward declarations.
+static void ImGui_ImplVTK_SetVportSize(int w, int h);
+static void ImGui_ImplVTK_IsCurrentCallbackFn(vtkObject* caller, long unsigned int eventId, void* clientData, void* callData);
+static void ImGui_ImplVTK_ProcessEvents();
 
 bool    ImGui_ImplVTK_Init()
 {
@@ -154,7 +116,7 @@ bool    ImGui_ImplVTK_Init()
   g_RenderWindow->SetSize(g_VportSize);
   vtkSmartPointer<vtkCallbackCommand> isCurrentCallback =
     vtkSmartPointer<vtkCallbackCommand>::New();
-  isCurrentCallback->SetCallback(IsCurrentCallbackFn);
+  isCurrentCallback->SetCallback(ImGui_ImplVTK_IsCurrentCallbackFn);
   g_RenderWindow->AddObserver(vtkCommand::WindowIsCurrentEvent, isCurrentCallback);
   g_RenderWindow->SwapBuffersOn();
   g_RenderWindow->UseOffScreenBuffersOff(); // ensures blit OffScreenBuffers -> Currently bound draw buffer
@@ -193,20 +155,28 @@ void    ImGui_ImplVTK_Shutdown()
   glDeleteBuffers(1, &g_TexHdl);
 }
 
-void    ImGui_ImplVTK_AddActor(vtkSmartPointer<vtkProp> actor)
+void    ImGui_ImplVTK_AddActor(vtkSmartPointer<vtkProp> prop)
 {
-  g_Renderer->AddActor(actor);
+  g_Renderer->AddActor(prop);
   g_Renderer->ResetCamera();
 }
 
-IMGUI_IMPL_API void ImGui_ImplVTK_AddActors(vtkSmartPointer<vtkPropCollection> actors)
+IMGUI_IMPL_API void ImGui_ImplVTK_AddActors(vtkSmartPointer<vtkPropCollection> props)
 {
-
+  props->InitTraversal();
+  vtkProp* prop; 
+  vtkCollectionSimpleIterator sit;
+  for (props->InitTraversal(sit);
+    (prop = props->GetNextProp(sit));)
+  {
+    g_Renderer->AddActor(prop);
+    g_Renderer->ResetCamera();
+  }
 }
 
-IMGUI_IMPL_API void ImGui_ImplVTK_RemoveActor(vtkSmartPointer<vtkProp> actor)
+IMGUI_IMPL_API void ImGui_ImplVTK_RemoveActor(vtkSmartPointer<vtkProp> prop)
 {
-  g_Renderer->RemoveActor(actor);
+  g_Renderer->RemoveActor(prop);
 }
 
 void    ImGui_ImplVTK_SetVportSize(int w, int h)
@@ -221,6 +191,7 @@ void    ImGui_ImplVTK_SetVportSize(int w, int h)
   g_VportSize[0] = w;
   g_VportSize[1] = h;
 
+  // these cause a crash in glfwSwapBuffers()
   //glDeleteBuffers(1, &g_FBOHdl);
   //glDeleteBuffers(1, &g_RBOHdl);
   //glDeleteBuffers(1, &g_TexHdl);
@@ -277,7 +248,7 @@ void    ImGui_ImplVTK_Render(const std::string& title)
 #endif // VTK_MAJOR_VERSION >= 9
 
     ImGui::BeginChild("##Viewport", ImVec2(0.0f, -ImGui::GetTextLineHeightWithSpacing() - 16.0f), true, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-    ProcessEvents();
+    ImGui_ImplVTK_ProcessEvents();
     ImGuiStyle& style = ImGui::GetStyle();
     ImGui::Image((void*)g_TexHdl,
       ImGui::GetContentRegionAvail(),
@@ -285,6 +256,45 @@ void    ImGui_ImplVTK_Render(const std::string& title)
     ImGui::EndChild();
     ImGui::End();
   }
+}
+
+void    ImGui_ImplVTK_IsCurrentCallbackFn(vtkObject* caller, long unsigned int eventId, void* clientData, void* callData)
+{
+  bool* isCurrent = static_cast<bool*>(callData);
+  *isCurrent = true;
+}
+
+void    ImGui_ImplVTK_ProcessEvents()
+{
+  if (!ImGui::IsWindowFocused())
+    return;
+
+  ImGuiIO& io = ImGui::GetIO(); (void)io;
+  io.ConfigWindowsMoveFromTitleBarOnly = true;
+  ImVec2 wPos = ImGui::GetWindowPos();
+
+  double xpos = static_cast<double>(io.MousePos[0]) - static_cast<double>(ImGui::GetWindowPos().x);
+  double ypos = static_cast<double>(io.MousePos[1]) - static_cast<double>(ImGui::GetWindowPos().y);
+  int ctrl = static_cast<int>(io.KeyCtrl);
+  int shift = static_cast<int>(io.KeyShift);
+  bool dclick = io.MouseDoubleClicked[0] || io.MouseDoubleClicked[1] || io.MouseDoubleClicked[2];
+
+  g_Interactor->SetEventInformationFlipY(xpos, ypos, ctrl, shift, dclick);
+
+  if (io.MouseClicked[ImGuiMouseButton_Left])
+    g_Interactor->InvokeEvent(vtkCommand::LeftButtonPressEvent, nullptr);
+  else if (io.MouseReleased[ImGuiMouseButton_Left])
+    g_Interactor->InvokeEvent(vtkCommand::LeftButtonReleaseEvent, nullptr);
+  else if (io.MouseClicked[ImGuiMouseButton_Right])
+    g_Interactor->InvokeEvent(vtkCommand::RightButtonPressEvent, nullptr);
+  else if (io.MouseReleased[ImGuiMouseButton_Right])
+    g_Interactor->InvokeEvent(vtkCommand::RightButtonReleaseEvent, nullptr);
+  else if (io.MouseWheel > 0)
+    g_Interactor->InvokeEvent(vtkCommand::MouseWheelForwardEvent, nullptr);
+  else if (io.MouseWheel < 0)
+    g_Interactor->InvokeEvent(vtkCommand::MouseWheelBackwardEvent, nullptr);
+
+  g_Interactor->InvokeEvent(vtkCommand::MouseMoveEvent, nullptr);
 }
 
 

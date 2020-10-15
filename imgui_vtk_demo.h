@@ -1,3 +1,4 @@
+#pragma once
 #include <vtkActor.h>
 #include <vtkSmartPointer.h>
 #include <vtkContourFilter.h>
@@ -25,8 +26,6 @@ static vtkSmartPointer<vtkActor> SetupDemoPipeline()
   double ymax = 30.0;
   double zmin = -10.0;
   double zmax = 60.0;
-
-  void options(int, char**);
 
   // take a stab at an integration step size
   auto xIncr = resolution / (xmax - xmin);

@@ -31,10 +31,6 @@ IMGUI_IMPL_API void     ImGui_ImplVTK_AddActor(vtkSmartPointer<vtkProp> actor);
 IMGUI_IMPL_API void     ImGui_ImplVTK_AddActors(vtkSmartPointer<vtkPropCollection> actors);
 IMGUI_IMPL_API void     ImGui_ImplVTK_RemoveActor(vtkSmartPointer<vtkProp> actor);
 
-IMGUI_IMPL_API void     ImGui_ImplVTK_SetVportSize(int w, int h);
-//IMGUI_IMPL_API void     ImGui_ImplVTK_GetVtkRenderer(vtkSmartPointer<vtkRenderer> renderer);
-//IMGUI_IMPL_API void     ImGui_ImplVTK_GetVtkInteractor(vtkSmartPointer<vtkGenericRenderWindowInteractor> interactor);
-
 // Specific OpenGL ES versions
 //#define IMGUI_IMPL_OPENGL_ES2     // Auto-detected on Emscripten
 //#define IMGUI_IMPL_OPENGL_ES3     // Auto-detected on iOS/Android
