@@ -71,6 +71,7 @@ using namespace gl;
 // VTK includes
 #include <vtkActor.h>
 #include <vtkCallbackCommand.h>
+#include <vtkCommand.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkGenericRenderWindowInteractor.h>
 #include <vtkInteractorStyleTrackballCamera.h>
@@ -92,12 +93,43 @@ static void IsCurrentCallbackFn(
   vtkObject* caller,
   long unsigned int eventId,
   void* clientData,
-  void* callData);
-
-void IsCurrentCallbackFn(vtkObject* caller, long unsigned int eventId, void* clientData, void* callData)
+  void* callData) 
 {
   bool * isCurrent = static_cast<bool*>(callData);
   *isCurrent = true;
+}
+
+static void ProcessEvents()
+{
+  if (!ImGui::IsWindowFocused())
+    return; 
+
+  ImGuiIO& io = ImGui::GetIO(); (void)io;
+  io.ConfigWindowsMoveFromTitleBarOnly = true;
+  ImVec2 wPos = ImGui::GetWindowPos();
+
+  double xpos = static_cast<double>(io.MousePos[0]) - static_cast<double>(ImGui::GetWindowPos().x);
+  double ypos = static_cast<double>(io.MousePos[1]) - static_cast<double>(ImGui::GetWindowPos().y);
+  int ctrl = static_cast<int>(io.KeyCtrl);
+  int shift = static_cast<int>(io.KeyShift);
+  bool dclick = io.MouseDoubleClicked[0] || io.MouseDoubleClicked[1] || io.MouseDoubleClicked[2];
+
+  g_Interactor->SetEventInformationFlipY(xpos, ypos, ctrl, shift, dclick);
+  
+  if (io.MouseClicked[ImGuiMouseButton_Left])
+    g_Interactor->InvokeEvent(vtkCommand::LeftButtonPressEvent, nullptr);
+  else if (io.MouseReleased[ImGuiMouseButton_Left])
+    g_Interactor->InvokeEvent(vtkCommand::LeftButtonReleaseEvent, nullptr);
+  else if (io.MouseClicked[ImGuiMouseButton_Right])
+    g_Interactor->InvokeEvent(vtkCommand::RightButtonPressEvent, nullptr);
+  else if (io.MouseReleased[ImGuiMouseButton_Right])
+    g_Interactor->InvokeEvent(vtkCommand::RightButtonReleaseEvent, nullptr);
+  else if (io.MouseWheel > 0)
+    g_Interactor->InvokeEvent(vtkCommand::MouseWheelForwardEvent, nullptr);
+  else if (io.MouseWheel < 0)
+    g_Interactor->InvokeEvent(vtkCommand::MouseWheelBackwardEvent, nullptr);
+
+  g_Interactor->InvokeEvent(vtkCommand::MouseMoveEvent, nullptr);
 }
 
 bool    ImGui_ImplVTK_Init()
@@ -142,6 +174,9 @@ bool    ImGui_ImplVTK_Init()
   g_VportSize[0] = 640;
   g_VportSize[1] = 480;
   g_Show = true;
+
+  ImGuiIO& io = ImGui::GetIO(); (void)io;
+  io.ConfigWindowsMoveFromTitleBarOnly = true; // don't drag window when clicking on image.
 
   return true;
 }
@@ -242,7 +277,7 @@ void    ImGui_ImplVTK_Render(const std::string& title)
 #endif // VTK_MAJOR_VERSION >= 9
 
     ImGui::BeginChild("##Viewport", ImVec2(0.0f, -ImGui::GetTextLineHeightWithSpacing() - 16.0f), true, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-
+    ProcessEvents();
     ImGuiStyle& style = ImGui::GetStyle();
     ImGui::Image((void*)g_TexHdl,
       ImGui::GetContentRegionAvail(),
@@ -251,4 +286,5 @@ void    ImGui_ImplVTK_Render(const std::string& title)
     ImGui::End();
   }
 }
+
 
