@@ -90,6 +90,7 @@ int main(int, char**)
   auto sphereSrc = vtkSmartPointer<vtkSphereSource>::New();
   auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   auto actor = vtkSmartPointer<vtkActor>::New();
+  auto seed = vtkSmartPointer<vtkStreamTr>
   sphereSrc->SetPhiResolution(100);
   sphereSrc->SetThetaResolution(100);
   mapper->SetInputConnection(sphereSrc->GetOutputPort());

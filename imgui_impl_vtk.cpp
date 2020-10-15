@@ -206,7 +206,7 @@ IMGUI_IMPL_API void ImGui_ImplVTK_AddActors(vtkSmartPointer<vtkPropCollection> a
 
 IMGUI_IMPL_API void ImGui_ImplVTK_RemoveActor(vtkSmartPointer<vtkProp> actor)
 {
-
+  g_Renderer->RemoveActor(actor);
 }
 
 void    ImGui_ImplVTK_SetVportSize(int w, int h)
