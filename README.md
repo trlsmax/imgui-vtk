@@ -10,6 +10,7 @@
 * Call ImGui_ImplVTK_Render() in event loop.
 * Look in `main.cpp`.
 
+![](vtkImGuiDemo.gif)
 
 ## Usage:
 
