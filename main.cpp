@@ -3,14 +3,12 @@
 // (GLFW is a cross-platform general purpose library for handling windows, inputs, OpenGL/Vulkan/Metal graphics context creation, etc.)
 
 #include <vtkSmartPointer.h>
-#include <vtkSphereSource.h>
-#include <vtkPolyDataMapper.h>
 #include <vtkActor.h>
-#include <vtkRenderer.h>
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_vtk.h"
+#include "imgui_vtk_demo.h"
 #include <stdio.h>
 
 // About Desktop OpenGL function loaders:
@@ -85,16 +83,8 @@ static void glfw_error_callback(int error, const char* description)
 
 int main(int, char**)
 {
-
   // Setup pipeline
-  auto sphereSrc = vtkSmartPointer<vtkSphereSource>::New();
-  auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  auto actor = vtkSmartPointer<vtkActor>::New();
-  auto seed = vtkSmartPointer<vtkStreamTr>
-  sphereSrc->SetPhiResolution(100);
-  sphereSrc->SetThetaResolution(100);
-  mapper->SetInputConnection(sphereSrc->GetOutputPort());
-  actor->SetMapper(mapper);
+  auto actor = SetupDemoPipeline();
 
   // Setup window
   glfwSetErrorCallback(glfw_error_callback);

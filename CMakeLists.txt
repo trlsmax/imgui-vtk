@@ -84,7 +84,6 @@ else ()
   )
 endif()
 
-
 if (VTK_VERSION VERSION_LESS "9.0.0")
   include(${VTK_USE_FILE})
 else ()
