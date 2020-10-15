@@ -2,7 +2,6 @@
 // If you are new to dear imgui, see examples/README.txt and documentation at the top of imgui.cpp.
 // (GLFW is a cross-platform general purpose library for handling windows, inputs, OpenGL/Vulkan/Metal graphics context creation, etc.)
 
-#include "vtkimgui.h"
 #include <vtkSmartPointer.h>
 #include <vtkSphereSource.h>
 #include <vtkPolyDataMapper.h>
@@ -11,6 +10,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "imgui_impl_vtk.h"
 #include <stdio.h>
 
 // About Desktop OpenGL function loaders:
@@ -94,9 +94,6 @@ int main(int, char**)
   sphereSrc->SetThetaResolution(100);
   mapper->SetInputConnection(sphereSrc->GetOutputPort());
   actor->SetMapper(mapper);
-  
-  auto vtkRenWin = new VtkDearImGui;
-  vtkRenWin->AddActor(actor);
 
   // Setup window
   glfwSetErrorCallback(glfw_error_callback);
@@ -167,6 +164,8 @@ int main(int, char**)
   // Setup Platform/Renderer backends
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init(glsl_version);
+  ImGui_ImplVTK_Init();
+  ImGui_ImplVTK_AddActor(actor);
 
   // Load Fonts
   // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
@@ -241,16 +240,16 @@ int main(int, char**)
     }
     // Rendering
 
+    ImGui_ImplVTK_Render("VTK+DearImGUI");
+    ImGui::Render();
+
     int display_w, display_h;
     glfwGetFramebufferSize(window, &display_w, &display_h);
     glViewport(0, 0, display_w, display_h);
-    glEnable(GL_SCISSOR_TEST); // required!
-    glScissor(0, 0, display_w, display_h); // required!
+    glScissor(0, 0, display_w, display_h);
     glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    vtkRenWin->Render();
-    ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     glfwSwapBuffers(window);
@@ -259,6 +258,7 @@ int main(int, char**)
   // Cleanup
   ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplGlfw_Shutdown();
+  ImGui_ImplVTK_Shutdown();
   ImGui::DestroyContext();
 
   glfwDestroyWindow(window);

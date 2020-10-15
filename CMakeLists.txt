@@ -5,23 +5,19 @@ set (CMAKE_CXX_STANDARD 11)
 set (CMAKE_VERBOSE_MAKEFILE 1)
 set (APP_VERSION_MAJOR 1)
 set (APP_VERSION_MINOR 0)
-set (LIBNAME vtkDearImGuiVport)
-set (EXECNAME vtkDearImGuiDemo)
+
+set (EXECNAME imgui_vtk)
 
 
 find_package(VTK COMPONENTS 
   vtkCommonCore
   vtkCommonDataModel
   vtkFiltersCore
-  vtkIOExport
-  vtkIOExportPDF
-  vtkIOXML
   vtkInteractionStyle
   vtkRenderingCore
   vtkRenderingFreeType
   vtkRenderingGL2PSOpenGL2
   vtkRenderingOpenGL2
-  vtkRenderingExternal
   QUIET
 )
 
@@ -41,36 +37,22 @@ link_libraries(${GLFW_LIBRARY_DIRS})
 find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIRS})
 
-add_library (${LIBNAME} "")
-target_sources (${LIBNAME}
-  PRIVATE
-    "${${PROJECT_NAME}_SOURCE_DIR}/vtkDearImGuiVport.cxx"
+add_executable (${EXECNAME} 
+    "${${PROJECT_NAME}_SOURCE_DIR}/main.cpp"
+    "${${PROJECT_NAME}_SOURCE_DIR}/glad/glad.c"
+    "${${PROJECT_NAME}_SOURCE_DIR}/imgui_impl_vtk.cpp"
     "${${PROJECT_NAME}_SOURCE_DIR}/imgui/imgui.cpp"
     "${${PROJECT_NAME}_SOURCE_DIR}/imgui/imgui_demo.cpp"
     "${${PROJECT_NAME}_SOURCE_DIR}/imgui/imgui_draw.cpp"
     "${${PROJECT_NAME}_SOURCE_DIR}/imgui/imgui_widgets.cpp"
+    "${${PROJECT_NAME}_SOURCE_DIR}/imgui/imgui_impl_glfw.cpp"
+    "${${PROJECT_NAME}_SOURCE_DIR}/imgui/imgui_impl_opengl3.cpp"
 )
 
-target_include_directories (${LIBNAME}
+target_include_directories (${EXECNAME}
   PUBLIC
     "${${PROJECT_NAME}_SOURCE_DIR}"
     "${${PROJECT_NAME}_SOURCE_DIR}/imgui"
-)
-
-target_link_libraries (
-    ${LIBNAME}
-    PUBLIC
-        ${VTK_LIBRARIES}
-)
-
-add_executable (${EXECNAME})
-
-target_sources (${EXECNAME}
-  PRIVATE
-    "${${PROJECT_NAME}_SOURCE_DIR}/main.cpp"
-    "${${PROJECT_NAME}_SOURCE_DIR}/imgui/imgui_impl_glfw.cpp"
-    "${${PROJECT_NAME}_SOURCE_DIR}/imgui/imgui_impl_opengl3.cpp"
-    "${${PROJECT_NAME}_SOURCE_DIR}/vtkimgui.cxx"
 )
 
 if (UNIX)
@@ -82,7 +64,6 @@ if (UNIX)
               "-framework CoreVideo"
               glfw
               ${VTK_LIBRARIES}
-              ${LIBNAME}
       )
   else ()
       target_link_libraries (
@@ -92,7 +73,6 @@ if (UNIX)
               ${CMAKE_DL_LIBS}
               glfw
               ${VTK_LIBRARIES}
-              ${LIBNAME}
       )
   endif()
 else ()
@@ -101,17 +81,16 @@ else ()
           glfw
           OpenGL::GL
           ${VTK_LIBRARIES}
-          ${LIBNAME}
   )
 endif()
 
 
 if (VTK_VERSION VERSION_LESS "9.0.0")
-  message(FATAL_ERROR "Unsupported VTK version < 9.0.0")
+  include(${VTK_USE_FILE})
 else ()
   # vtk_module_autoinit is needed
   vtk_module_autoinit(
-    TARGETS ${LIBNAME}
+    TARGETS ${EXECNAME}
     MODULES ${VTK_LIBRARIES}
     )
   # vtk_module_autoinit is needed
