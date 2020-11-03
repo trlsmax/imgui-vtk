@@ -181,7 +181,9 @@ IMGUI_IMPL_API void ImGui_ImplVTK_RemoveActor(vtkSmartPointer<vtkProp> prop)
 
 void    ImGui_ImplVTK_SetVportSize(int w, int h)
 {
+#if VTK_MAJOR_VERSION >= 9
   g_RenderWindow->SetShowWindow(g_Show);
+#endif
 
   if (g_VportSize[0] == w && g_VportSize[1] == h)
     return;
@@ -239,12 +241,16 @@ void    ImGui_ImplVTK_Render(const std::string& title)
 #if VTK_BUILD_VERSION >= 2
     glBindFramebuffer(GL_DRAW_BUFFER, g_FBOHdl); // required since we set BlitToCurrent = On.
 #endif // VTK_BUILD_VERSION >= 2
+#else
+    glBindFramebuffer(GL_FRAMEBUFFER, g_FBOHdl);
 #endif // VTK_MAJOR_VERSION >= 9
     g_RenderWindow->Render();
 #if VTK_MAJOR_VERSION >= 9
 #if VTK_BUILD_VERSION >= 2
     glBindFramebuffer(GL_DRAW_BUFFER, 0);
 #endif // VTK_BUILD_VERSION >= 2
+#else
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 #endif // VTK_MAJOR_VERSION >= 9
 
     ImGui::BeginChild("##Viewport", ImVec2(0.0f, -ImGui::GetTextLineHeightWithSpacing() - 16.0f), true, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);

@@ -110,7 +110,9 @@ static vtkSmartPointer<vtkActor> SetupDemoPipeline()
   auto actor =
     vtkSmartPointer<vtkActor>::New();
   actor->SetMapper(mapper);
+#if VTK_MAJOR_VERSION >= 9
   actor->GetProperty()->SetColor(colors->GetColor3d("PaleTurquoise").GetData());
+#endif
 
   return actor;
 }
