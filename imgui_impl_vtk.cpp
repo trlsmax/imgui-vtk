@@ -119,11 +119,13 @@ bool    ImGui_ImplVTK_Init()
   isCurrentCallback->SetCallback(ImGui_ImplVTK_IsCurrentCallbackFn);
   g_RenderWindow->AddObserver(vtkCommand::WindowIsCurrentEvent, isCurrentCallback);
   g_RenderWindow->SwapBuffersOn();
-  g_RenderWindow->UseOffScreenBuffersOff(); // ensures blit OffScreenBuffers -> Currently bound draw buffer
 #if VTK_MAJOR_VERSION >= 9
+  g_RenderWindow->UseOffScreenBuffersOff(); // ensures blit OffScreenBuffers -> Currently bound draw buffer
 #if VTK_BUILD_VERSION >= 2
   g_RenderWindow->SetFrameBlitModeToBlitToCurrent(); // VTK library should blit its display fbo to g_FBOHdl.
 #endif // VTK_BUILD_VERSION
+#else
+  g_RenderWindow->SetUseOffScreenBuffers(false);
 #endif // VTK_MAJOR_VERSION >= 9
 
 
