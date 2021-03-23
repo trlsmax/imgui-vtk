@@ -1,5 +1,5 @@
 
-# Improvements to https://github.com/trlsmax/imgui-vtk. Adapted to new capabilities in VTK >= 9.0 
+# VTK adapter for DearImGUI
 
 * An effort to incorporate VTK's dataset visualization capabilities with versatility of DearImGUI.
 * Renders VTK content into a dedicated Dear ImGui window. (Like a viewport)
