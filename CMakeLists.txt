@@ -10,6 +10,7 @@ set (EXECNAME imgui_vtk)
 
 
 find_package(VTK COMPONENTS 
+  vtkCommonColor
   vtkCommonCore
   vtkCommonDataModel
   vtkFiltersCore
@@ -37,22 +38,29 @@ link_libraries(${GLFW_LIBRARY_DIRS})
 find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIRS})
 
-add_executable (${EXECNAME} 
-    "${${PROJECT_NAME}_SOURCE_DIR}/main.cpp"
-    "${${PROJECT_NAME}_SOURCE_DIR}/glad/glad.c"
-    "${${PROJECT_NAME}_SOURCE_DIR}/imgui_impl_vtk.cpp"
-    "${${PROJECT_NAME}_SOURCE_DIR}/imgui/imgui.cpp"
-    "${${PROJECT_NAME}_SOURCE_DIR}/imgui/imgui_demo.cpp"
-    "${${PROJECT_NAME}_SOURCE_DIR}/imgui/imgui_draw.cpp"
-    "${${PROJECT_NAME}_SOURCE_DIR}/imgui/imgui_widgets.cpp"
-    "${${PROJECT_NAME}_SOURCE_DIR}/imgui/imgui_impl_glfw.cpp"
-    "${${PROJECT_NAME}_SOURCE_DIR}/imgui/imgui_impl_opengl3.cpp"
+set(HEADER_FILES
+    imgui_impl_vtk.h
+    imgui_vtk_demo.h
 )
+
+set(SOURCE_FILES
+    main.cpp
+    glad/glad.c
+    imgui_impl_vtk.cpp
+    imgui/imgui.cpp
+    imgui/imgui_demo.cpp
+    imgui/imgui_draw.cpp
+    imgui/imgui_widgets.cpp
+    imgui/imgui_impl_glfw.cpp
+    imgui/imgui_impl_opengl3.cpp
+)
+
+add_executable (${EXECNAME} ${HEADER_FILES} ${SOURCE_FILES})
 
 target_include_directories (${EXECNAME}
   PUBLIC
-    "${${PROJECT_NAME}_SOURCE_DIR}"
-    "${${PROJECT_NAME}_SOURCE_DIR}/imgui"
+    .
+    imgui
 )
 
 if (UNIX)
@@ -87,11 +95,6 @@ endif()
 if (VTK_VERSION VERSION_LESS "9.0.0")
   include(${VTK_USE_FILE})
 else ()
-  # vtk_module_autoinit is needed
-  vtk_module_autoinit(
-    TARGETS ${EXECNAME}
-    MODULES ${VTK_LIBRARIES}
-    )
   # vtk_module_autoinit is needed
   vtk_module_autoinit(
     TARGETS ${EXECNAME}
