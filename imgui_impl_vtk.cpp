@@ -237,13 +237,13 @@ void    ImGui_ImplVTK_Render(const std::string& title)
     ImGui_ImplVTK_SetVportSize(ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
 #if VTK_MAJOR_VERSION >= 9
 #if VTK_BUILD_VERSION >= 2
-    glBindFramebuffer(GL_DRAW_BUFFER, g_FBOHdl); // required since we set BlitToCurrent = On.
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, g_FBOHdl); // required since we set BlitToCurrent = On.
 #endif // VTK_BUILD_VERSION >= 2
 #endif // VTK_MAJOR_VERSION >= 9
     g_RenderWindow->Render();
 #if VTK_MAJOR_VERSION >= 9
 #if VTK_BUILD_VERSION >= 2
-    glBindFramebuffer(GL_DRAW_BUFFER, 0);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 #endif // VTK_BUILD_VERSION >= 2
 #endif // VTK_MAJOR_VERSION >= 9
 
