@@ -120,6 +120,26 @@ public:
 	inline void setTitle(const std::string& title) {
 		this->title = title;
 	}
+
+	inline void setShow(bool show) {
+		this->show = show;
+	}
+public:
+	inline void setRenderWindow(const vtkSmartPointer<vtkGenericOpenGLRenderWindow>& renderWindow) {
+		this->renderWindow = renderWindow;
+	}
+
+	inline void setInteractor(const vtkSmartPointer<vtkGenericRenderWindowInteractor>& interactor) {
+		this->interactor = interactor;
+	}
+
+	inline void setInteractorStyle(const vtkSmartPointer<vtkInteractorStyleTrackballCamera>& interactorStyle) {
+		this->interactorStyle = interactorStyle;
+	}
+
+	inline void setRenderer(const vtkSmartPointer<vtkRenderer>& renderer) {
+		this->renderer = renderer;
+	}
 public:
 	inline vtkSmartPointer<vtkGenericOpenGLRenderWindow>& getRenderWindow() {
 		return renderWindow;
