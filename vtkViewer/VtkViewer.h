@@ -117,6 +117,10 @@ public:
 	IMGUI_IMPL_API void removeActor(const vtkSmartPointer<vtkProp>& actor);
 	void setViewportSize(unsigned int viewportWidth, unsigned int viewportHeight);
 public:
+	inline void setTitle(const std::string& title) {
+		this->title = title;
+	}
+public:
 	inline vtkSmartPointer<vtkGenericOpenGLRenderWindow>& getRenderWindow() {
 		return renderWindow;
 	}
