@@ -128,7 +128,6 @@ bool    ImGui_ImplVTK_Init()
   g_RenderWindow->SetUseOffScreenBuffers(false);
 #endif // VTK_MAJOR_VERSION >= 9
 
-
   g_RenderWindow->AddRenderer(g_Renderer);
   g_RenderWindow->SetInteractor(g_Interactor);
 
