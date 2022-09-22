@@ -238,21 +238,21 @@ void    ImGui_ImplVTK_Render(const std::string& title)
   else
   {
     ImGui_ImplVTK_SetVportSize(ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
-    #if VTK_MAJOR_VERSION >= 9
-      #if VTK_BUILD_VERSION >= 2
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, g_FBOHdl); // required since we set BlitToCurrent = On.
-      #else
-        glBindFramebuffer(GL_FRAMEBUFFER, g_FBOHdl);
-      #endif // VTK_BUILD_VERSION >= 2
-    #endif // VTK_MAJOR_VERSION >= 9
+#if VTK_MAJOR_VERSION >= 9
+#if VTK_BUILD_VERSION >= 2
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, g_FBOHdl); // required since we set BlitToCurrent = On.
+#else
+    glBindFramebuffer(GL_FRAMEBUFFER, g_FBOHdl);
+#endif // VTK_BUILD_VERSION >= 2
+#endif // VTK_MAJOR_VERSION >= 9
     g_RenderWindow->Render();
-    #if VTK_MAJOR_VERSION >= 9
-      #if VTK_BUILD_VERSION >= 2
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-      #else
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-      #endif // VTK_BUILD_VERSION >= 2
-    #endif // VTK_MAJOR_VERSION >= 9
+#if VTK_MAJOR_VERSION >= 9
+#if VTK_BUILD_VERSION >= 2
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+#else
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#endif // VTK_BUILD_VERSION >= 2
+#endif // VTK_MAJOR_VERSION >= 9
 
     ImGui::BeginChild("##Viewport", ImVec2(0.0f, -ImGui::GetTextLineHeightWithSpacing() - 16.0f), true, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     ImGui_ImplVTK_ProcessEvents();
