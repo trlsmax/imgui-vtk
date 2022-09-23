@@ -1,5 +1,5 @@
 
-# VTK adapter for DearImGUI
+# VTK Widget for DearImGUI
 
 * An effort to incorporate VTK's dataset visualization capabilities with versatility of DearImGUI.
 * Renders VTK content into a viewport within an ImGui Window
