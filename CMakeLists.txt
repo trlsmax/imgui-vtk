@@ -1,117 +1,105 @@
-cmake_minimum_required (VERSION 3.6)
-project (imgui-vtk)
+cmake_minimum_required(VERSION 3.6 FATAL_ERROR)
+project(imgui-vtk)
 
-set (CMAKE_CXX_STANDARD 11)
-set (CMAKE_VERBOSE_MAKEFILE 1)
-set (APP_VERSION_MAJOR 1)
-set (APP_VERSION_MINOR 0)
+set(CMAKE_CXX_STANDARD 11)
+# set(CMAKE_VERBOSE_MAKEFILE 1)
+set(APP_VERSION_MAJOR 1)
+set(APP_VERSION_MINOR 0)
+set(EXEC_NAME imgui_vtk)
 
-set (EXECNAME imgui_vtk)
+add_executable(${EXEC_NAME} main.cpp)
 
-
-find_package(ParaView
-  QUIET
-)
-if (NOT ParaView_FOUND)
-  find_package(VTK COMPONENTS 
-    CommonCore
-    CommonColor
-    CommonDataModel
-    FiltersCore
-    InteractionStyle
-    RenderingCore
-    RenderingFreeType
-    RenderingGL2PSOpenGL2
-    RenderingOpenGL2
-    QUIET
-  )
-  if (NOT VTK_FOUND)
-    message("Skipping imgui-vtk: ${VTK_NOT_FOUND_MESSAGE}")
-    return ()
-  endif()
+# OpenGL
+find_package(OpenGL REQUIRED)
+target_link_libraries(${EXEC_NAME} OpenGL::GL)
+if (APPLE)
+	# Ignore macOS OpenGL deprecation warnings
+	target_compile_definitions(${EXEC_NAME} PRIVATE GL_SILENCE_DEPRECATION)
 endif()
 
-message (STATUS "VTK_VERSION: ${VTK_VERSION}")
+# add_library(glad STATIC "./glad/glad.c")
+# target_include_directories(glad PUBLIC "./" "./glad")
+# target_link_libraries(${EXEC_NAME} glad)
 
-# glfw
-list (APPEND CMAKE_MODULE_PATH "${${PROJECT_NAME}_SOURCE_DIR}")
-find_package(glfw3 REQUIRED)
-include_directories(${GLFW3_INCLUDE_DIR})
-link_libraries(${GLFW_LIBRARY_DIRS})
+# OpenGL Loader - GL3W
+# This can be replaced with your own OpenGL Loader
+# Either compile it as a static library like this example
+# Or add it to the source files for the main executable + imgui + vtkviewer
+set(gl3w_dir "${CMAKE_CURRENT_SOURCE_DIR}/gl3w")
+set(gl3w_inc "${gl3w_dir}/include")
+set(gl3w_src "${gl3w_dir}/src/gl3w.c")
+if (EXISTS ${gl3w_src})
+	message(STATUS "Found gl3w source files")
+else()
+	execute_process(COMMAND python3 gl3w_gen.py WORKING_DIRECTORY "${gl3w_dir}") # use python or python3
+	if (NOT EXISTS ${gl3w_src})
+		message(FATAL_ERROR "Could not generate gl3w source files")
+	endif()
+endif()
+add_library(gl3w STATIC "${gl3w_src}")
+target_include_directories(gl3w PUBLIC "${gl3w_inc}")
+target_link_libraries(${EXEC_NAME} gl3w)
 
-# opengl
-find_package(OpenGL REQUIRED)
-include_directories(${OPENGL_INCLUDE_DIRS})
+# GLFW
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/glfw")
+target_link_libraries(${EXEC_NAME} glfw)
 
-set(HEADER_FILES
-    imgui_impl_vtk.h
-    imgui_vtk_demo.h
+# Dear ImGui
+set(imgui_dir "./imgui")
+file(GLOB imgui_src "${imgui_dir}/*.cpp")
+set(imgui_backend "${imgui_dir}/backends/imgui_impl_glfw.cpp" "${imgui_dir}/backends/imgui_impl_opengl3.cpp")
+add_library(imgui STATIC "${imgui_src}" "${imgui_backend}")
+target_include_directories(imgui PUBLIC "${imgui_dir}" "${imgui_dir}/backends")
+target_link_libraries(imgui glfw)
+target_link_libraries(${EXEC_NAME} imgui)
+
+# VTK
+find_package(VTK COMPONENTS 
+  CommonCore
+  CommonColor
+  CommonDataModel
+  FiltersCore
+  InteractionStyle
+  RenderingCore
+  RenderingFreeType
+  RenderingGL2PSOpenGL2
+  RenderingOpenGL2
+  QUIET
 )
-
-set(SOURCE_FILES
-    main.cpp
-    glad/glad.c
-    imgui_impl_vtk.cpp
-    imgui/imgui.cpp
-    imgui/imgui_demo.cpp
-    imgui/imgui_draw.cpp
-    imgui/imgui_widgets.cpp
-    imgui/imgui_impl_glfw.cpp
-    imgui/imgui_impl_opengl3.cpp
-)
-
-add_executable (${EXECNAME} ${HEADER_FILES} ${SOURCE_FILES})
-
-target_include_directories (${EXECNAME}
-  PUBLIC
-    "${${PROJECT_NAME}_SOURCE_DIR}"
-    "${${PROJECT_NAME}_SOURCE_DIR}/imgui"
-)
-
-target_compile_definitions(${EXECNAME} PRIVATE "IMGUI_IMPL_OPENGL_LOADER_GLAD")
-
-if (UNIX)
-  if (APPLE)
-      target_link_libraries (
-         ${EXECNAME}
-              "-framework Cocoa"
-              "-framework IOKit"
-              "-framework CoreVideo"
-              glfw
-              OpenGL::GL
-              ${VTK_LIBRARIES}
-      )
-  else ()
-      target_link_libraries (
-         ${EXECNAME}
-              ${CMAKE_THREAD_LIBS_INIT}
-              ${X11_LIBRARIES}
-              ${CMAKE_DL_LIBS}
-              glfw
-              OpenGL::GL
-              ${VTK_LIBRARIES}
-      )
-  endif()
-else ()
-  target_link_libraries (
-     ${EXECNAME}
-          glfw
-          OpenGL::GL
-          ${VTK_LIBRARIES}
-  )
+if (NOT VTK_FOUND)
+  message(FATAL_ERROR "VTK not found!")
+  return()
 endif()
 
 if (VTK_VERSION VERSION_LESS "9.0.0")
   include(${VTK_USE_FILE})
-else ()
+else()
   # vtk_module_autoinit is needed
   vtk_module_autoinit(
-    TARGETS ${EXECNAME}
+    TARGETS ${EXEC_NAME}
     MODULES ${VTK_LIBRARIES}
-    )
-  # vtk_module_autoinit is needed
-  vtk_module_autoinit(
-    TARGETS ${EXECNAME}
-    MODULES ${VTK_LIBRARIES}
-    )
-endif () 
+  )
+endif()
+message (STATUS "VTK Version: ${VTK_VERSION}")
+
+# ImGui-VTK (VTK Viewer class)
+# Built separately & linked.
+# If you prefer, you can compile all source files, imgui, and vtkViewer files together
+set(imgui_vtk_viewer "${CMAKE_CURRENT_SOURCE_DIR}/vtkViewer")
+file(GLOB imgui_vtk_viewer_src "${imgui_vtk_viewer}/*.cpp")
+add_library(imgui_vtk_viewer STATIC "${imgui_vtk_viewer_src}")
+target_include_directories(imgui_vtk_viewer PUBLIC "${imgui_vtk_viewer}")
+target_link_libraries(imgui_vtk_viewer gl3w) # Since gl3w was compiled as a static library, we need to link to it
+target_link_libraries(imgui_vtk_viewer imgui) # Since imgui was compiled as a static library, we need to link to it
+target_link_libraries(imgui_vtk_viewer ${VTK_LIBRARIES})
+target_link_libraries(${EXEC_NAME} imgui_vtk_viewer)
+
+# GLFW is built from source in this example
+# But if you link dynamically, you may need to link some native libraries on macOS:
+# target_link_libraries(${EXEC_NAME} "-framework Cocoa" "-framework IOKit" "-framework CoreVideo")
+if (UNIX AND NOT APPLE)
+  target_link_libraries(${EXEC_NAME} ${CMAKE_THREAD_LIBS_INIT} ${X11_LIBRARIES} ${CMAKE_DL_LIBS})
+endif()

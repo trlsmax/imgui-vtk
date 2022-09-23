@@ -32,13 +32,20 @@ actor2->SetMapper(mapper2);
 ...
 
 ImguiInit...
-ImGui_ImplVTK_Init()
+
+VtkViewer myVtkViewer;
+myVtkViewer.addActor(myActor);
 
 while (!terminate)
 {
   Imgui new frame..
   custom imgui windows..
-  ImGui_ImplVTK_Render();
+
+  // VTK Viewer Window
+  ImGui::Begin("My VTK Viewer", nullptr, VtkViewer::NoScrollFlags());
+  myVtkViewer.render();
+  ImGui::End();
+
   ImGui::Render();
   ImGui_Impl_xxx_RenderDrawData();
 }
