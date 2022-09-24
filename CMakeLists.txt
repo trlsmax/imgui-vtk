@@ -84,10 +84,9 @@ message (STATUS "VTK Version: ${VTK_VERSION}")
 # ImGui-VTK (VTK Viewer class)
 # Built separately & linked.
 # If you prefer, you can compile all source files, imgui, and vtkViewer files together
-set(imgui_vtk_viewer "${CMAKE_CURRENT_SOURCE_DIR}/vtkViewer")
-file(GLOB imgui_vtk_viewer_src "${imgui_vtk_viewer}/*.cpp")
-add_library(imgui_vtk_viewer STATIC "${imgui_vtk_viewer_src}")
-target_include_directories(imgui_vtk_viewer PUBLIC "${imgui_vtk_viewer}")
+set(imgui_vtk_viewer_dir "${CMAKE_CURRENT_SOURCE_DIR}")
+add_library(imgui_vtk_viewer STATIC "${CMAKE_CURRENT_SOURCE_DIR}/VtkViewer.cpp")
+target_include_directories(imgui_vtk_viewer PRIVATE "${imgui_vtk_viewer_dir}")
 target_link_libraries(imgui_vtk_viewer gl3w) # Since gl3w was compiled as a static library, we need to link to it
 target_link_libraries(imgui_vtk_viewer imgui) # Since imgui was compiled as a static library, we need to link to it
 target_link_libraries(imgui_vtk_viewer ${VTK_LIBRARIES})
