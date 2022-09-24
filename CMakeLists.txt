@@ -17,10 +17,6 @@ if (APPLE)
 	target_compile_definitions(${EXEC_NAME} PRIVATE GL_SILENCE_DEPRECATION)
 endif()
 
-# add_library(glad STATIC "./glad/glad.c")
-# target_include_directories(glad PUBLIC "./" "./glad")
-# target_link_libraries(${EXEC_NAME} glad)
-
 # OpenGL Loader - GL3W
 # This can be replaced with your own OpenGL Loader
 # Either compile it as a static library like this example
