@@ -1,0 +1,104 @@
+cmake_minimum_required(VERSION 3.6 FATAL_ERROR)
+project(imgui-vtk)
+
+set(CMAKE_CXX_STANDARD 11)
+# set(CMAKE_VERBOSE_MAKEFILE 1)
+set(APP_VERSION_MAJOR 1)
+set(APP_VERSION_MINOR 0)
+set(EXEC_NAME imgui_vtk)
+
+# Find OpenGL
+find_package(OpenGL REQUIRED)
+
+# GL3W
+# This can be replaced with your own OpenGL Loader
+set(gl3w_dir ${CMAKE_CURRENT_SOURCE_DIR}/gl3w)
+set(gl3w_inc ${gl3w_dir}/include)
+set(gl3w_src ${gl3w_dir}/src/gl3w.c)
+if (EXISTS ${gl3w_src})
+	message(STATUS "Found gl3w source files")
+else()
+	execute_process(COMMAND python3 gl3w_gen.py WORKING_DIRECTORY ${gl3w_dir}) # can use python or python3
+	if (NOT EXISTS ${gl3w_src})
+		message(FATAL_ERROR "Could not generate gl3w source files")
+	endif()
+endif()
+
+# GLFW
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glfw)
+
+# VTK
+find_package(VTK COMPONENTS 
+  CommonCore
+  CommonColor
+  CommonDataModel
+  FiltersCore
+  InteractionStyle
+  RenderingCore
+  RenderingFreeType
+  RenderingGL2PSOpenGL2
+  RenderingOpenGL2
+  QUIET
+)
+if (NOT VTK_FOUND)
+  message(FATAL_ERROR "VTK not found!")
+  return()
+endif()
+message (STATUS "VTK Version: ${VTK_VERSION}")
+
+# Dear ImGui
+set(imgui_dir ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
+file(GLOB imgui_src ${imgui_dir}/*.cpp)
+set(imgui_backend ${imgui_dir}/backends/imgui_impl_glfw.cpp ${imgui_dir}/backends/imgui_impl_opengl3.cpp)
+
+# ImGui-VTK (VTK Viewer class)
+set(imgui_vtk_viewer_dir ${CMAKE_CURRENT_SOURCE_DIR})
+set(imgui_vtk_viewer_src ${imgui_vtk_viewer_dir}/VtkViewer.cpp)
+
+# This project's executable
+add_executable(${EXEC_NAME}
+  main.cpp
+  ${gl3w_src}
+  ${imgui_src}
+  ${imgui_backend}
+  ${imgui_vtk_viewer_src}
+)
+
+target_include_directories(${EXEC_NAME} PUBLIC
+  ${gl3w_inc}
+  ${imgui_dir}
+  ${imgui_dir}/backends
+  ${imgui_vtk_viewer_dir}
+)
+
+target_link_libraries(${EXEC_NAME}
+  OpenGL::GL
+  glfw
+  ${VTK_LIBRARIES}
+)
+if (APPLE)
+	# Ignore macOS OpenGL deprecation warnings
+	target_compile_definitions(${EXEC_NAME} PRIVATE GL_SILENCE_DEPRECATION)
+endif()
+
+# VTK Module init
+if (VTK_VERSION VERSION_LESS "9.0.0")
+  include(${VTK_USE_FILE})
+else()
+  # vtk_module_autoinit is needed
+  vtk_module_autoinit(
+    TARGETS ${EXEC_NAME}
+    MODULES ${VTK_LIBRARIES}
+  )
+endif()
+
+# GLFW is built from source in this example
+# But if you link dynamically, you may need to link some native libraries on macOS:
+# target_link_libraries(${EXEC_NAME} "-framework Cocoa" "-framework IOKit" "-framework CoreVideo")
+if (UNIX AND NOT APPLE)
+  target_link_libraries(${EXEC_NAME} ${CMAKE_THREAD_LIBS_INIT} ${X11_LIBRARIES} ${CMAKE_DL_LIBS})
+endif()

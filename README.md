@@ -1,12 +1,12 @@
 
 # VTK Widget for DearImGUI
 
-* An effort to incorporate VTK's dataset visualization capabilities with versatility of DearImGUI.
+* An effort to incorporate VTK's dataset visualization capabilities with versatility of DearImGUI
 * Renders VTK content into a viewport within an ImGui Window
-* Look in `main.cpp` for details on example usage.
+* Look in `main.cpp` for details on example usage
 
 ## Changes vs. [trlsmax/imgui-vtk](https://github.com/trlsmax/imgui-vtk)
-- `imgui_impl_vtk` files are now deprecated in favor of using VtkViewer objects.
+- `imgui_impl_vtk` files are now deprecated in favor of using VtkViewer objects
 - Uses VTK OpenGLRenderWindow's framebuffer directly
 - Fixes/upgrades IO behavior
 - Uses ImGui's `docking` branch
@@ -21,6 +21,13 @@
 ![](vtkImGuiDemo.gif)
 
 ## Usage:
+- CMake
+  1. Build separately & link
+    - Build your executable, imgui, your OpenGL Loader (e.g., gl3w), and imgui-vtk. **Make sure to link imgui-vtk against imgui, your OpenGL Loader (e.g., gl3w), and VTK!**
+    - See `CMakeLists.txt` for more details
+  2. Build together
+    - Build your executable, imgui, your OpenGL Loader (e.g., gl3w), and imgui-vtk all together, from source.
+    - See `CMakeLists-alt.txt` for more details
 - See `main.cpp`
 
 ```
