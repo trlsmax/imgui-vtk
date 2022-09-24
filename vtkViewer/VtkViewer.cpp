@@ -227,10 +227,6 @@ void VtkViewer::setViewportSize(const ImVec2 newSize){
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
 	vtkfbo->UnBind();
 
-	// [FIXME] Currently, a VTKViewer will flash upon being resized if in an "undocked" window.
-	// If there are, e.g., 3 undocked VTKViewer Windows, the flashing only affects the "last" one
-	// defined in the main loop. The others seem to resize just fine.
-
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	firstRender = false;
 }
