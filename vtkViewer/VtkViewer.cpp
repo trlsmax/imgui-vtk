@@ -167,8 +167,8 @@ void VtkViewer::render(const ImVec2 size){
 	auto vtkfbo = renderWindow->GetDisplayFramebuffer();
 	vtkfbo->Bind();
 	renderWindow->Render();
+	renderWindow->WaitForCompletion();
 	vtkfbo->UnBind();
-	vtkfbo->RestorePreviousBindingsAndBuffers();
 
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
 	ImGui::BeginChild("##Viewport", size, true, NoScrollFlags());
@@ -203,8 +203,6 @@ void VtkViewer::setViewportSize(const ImVec2 newSize){
 	if (((viewportWidth == newSize.x && viewportHeight == newSize.y) || viewportWidth <= 0 || viewportHeight <= 0) && !firstRender){
 		return;
 	}
-	
-	int err = 0;
 
 	viewportWidth = static_cast<unsigned int>(newSize.x);
 	viewportHeight = static_cast<unsigned int>(newSize.y);
@@ -234,11 +232,8 @@ void VtkViewer::setViewportSize(const ImVec2 newSize){
 	vtkfbo->UnBind();
 
 	// [FIXME] Currently, a VTKViewer will flash upon being resized if in an "undocked" window.
-	// This will (try to) cover it with black to make the flashing less noticable
 	// If there are, e.g., 3 undocked VTKViewer Windows, the flashing only affects the "last" one
 	// defined in the main loop. The others seem to resize just fine.
-	glClearColor(0.0, 0.0, 0.0, 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	firstRender = false;

@@ -187,7 +187,6 @@ int main(int argc, char* argv[])
       ImGui::End();
     }
 
-    ImGui::EndFrame();
     ImGui::Render();
 
     int display_w, display_h;
