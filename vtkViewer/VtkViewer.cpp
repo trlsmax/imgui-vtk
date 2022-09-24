@@ -161,17 +161,13 @@ void VtkViewer::render(){
 	render(ImGui::GetContentRegionAvail());
 }
 void VtkViewer::render(const ImVec2 size){
-	ImGuiStyle& style = ImGui::GetStyle();
 	setViewportSize(size);
 
-	auto vtkfbo = renderWindow->GetDisplayFramebuffer();
-	vtkfbo->Bind();
 	renderWindow->Render();
 	renderWindow->WaitForCompletion();
-	vtkfbo->UnBind();
 
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
-	ImGui::BeginChild("##Viewport", size, true, NoScrollFlags());
+	ImGui::BeginChild("##Viewport", size, true, VtkViewer::NoScrollFlags());
 	ImGui::Image(reinterpret_cast<void*>(tex), ImGui::GetContentRegionAvail(), ImVec2(0, 1), ImVec2(1, 0));
 	processEvents();
 	ImGui::EndChild();
