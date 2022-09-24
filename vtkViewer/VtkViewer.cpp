@@ -172,8 +172,6 @@ void VtkViewer::render(const ImVec2 size){
 	processEvents();
 	ImGui::EndChild();
 	ImGui::PopStyleVar();
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void VtkViewer::addActor(const vtkSmartPointer<vtkProp>& actor){
