@@ -44,7 +44,7 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/glfw")
 target_link_libraries(${EXEC_NAME} glfw)
 
 # Dear ImGui
-set(imgui_dir "./imgui")
+set(imgui_dir "${CMAKE_CURRENT_SOURCE_DIR}/imgui")
 file(GLOB imgui_src "${imgui_dir}/*.cpp")
 set(imgui_backend "${imgui_dir}/backends/imgui_impl_glfw.cpp" "${imgui_dir}/backends/imgui_impl_opengl3.cpp")
 add_library(imgui STATIC "${imgui_src}" "${imgui_backend}")
