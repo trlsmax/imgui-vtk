@@ -6,17 +6,19 @@
 * Look in `main.cpp` for details on example usage
 
 ## Changes vs. [trlsmax/imgui-vtk](https://github.com/trlsmax/imgui-vtk)
-- `imgui_impl_vtk` files are now deprecated in favor of using VtkViewer objects
+- `imgui_impl_vtk` files are now deprecated in favor of using `VtkViewer` objects
 - Uses VTK OpenGLRenderWindow's framebuffer directly
 - Fixes/upgrades IO behavior
-- Uses ImGui's `docking` branch
-- Includes `imgui`, `gl3w`, and `glfw` as git submodules in this repository
+- Uses ImGui's `docking` branch (but doesn't depend on it; you can certainly avoid/revert this if desired)
+- Includes `imgui`, `gl3w`, and `glfw` directly as git submodules in this repository
 - Builds components separately in `CMakeLists.txt` and links them as static libraries
-- Supports multiple independent VtkViewer instances/windows
+  - `CMakeLists-alt.txt` is more similar to the old `CMakeLists.txt`, building everything together from source
+- Supports multiple independent `VtkViewer` instances/windows
 - Usage (see `main.cpp` for details)
-  - Previous: ImGui window is created for you
-  - Current: Create (and end) ImGui window yourself
-    - Allows you to place other widgets in same window as VTK "viewport"
+  - Previous: ImGui window was created for you
+  - Current: You must create (and end) ImGui windows yourself
+    - This allows you to place other widgets in same window as VTK "viewport" and control all aspects of the ImGui Window yourself
+- **Note: For the sake of cleanliness and readability, most preprocessor directives were removed.** Files no longer auto-detect your OpenGL loader. While everything is currently set up for OpenGL3 + GLFW + GL3W, you may need to adjust `#include` statements, etc. to match your use case.
 
 ![](vtkImGuiDemo.gif)
 
