@@ -1,20 +1,26 @@
-
-#include <vtkSmartPointer.h>
-#include <vtkActor.h>
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
-#include "imgui_vtk_demo.h"
-#include "VtkViewer.h"
-#include <stdio.h>
+// Standard Library
+#include <iostream>
 
 // OpenGL Loader
 // This can be replaced with another loader, e.g. glad, but
-// remember to change the corresponding initialize call below!
-#include <GL/gl3w.h>            // GL3w, initialized with gl3wInit()
+// remember to also change the corresponding initialize call!
+#include <GL/gl3w.h>            // GL3w, initialized with gl3wInit() below
 
 // Include glfw3.h after our OpenGL definitions
 #include <GLFW/glfw3.h>
+
+// ImGui + imgui-vtk
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+#include "VtkViewer.h"
+
+// VTK
+#include <vtkSmartPointer.h>
+#include <vtkActor.h>
+
+// File-Specific Includes
+#include "imgui_vtk_demo.h" // Actor generator for this demo
 
 static void glfw_error_callback(int error, const char* description)
 {
