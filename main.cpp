@@ -38,21 +38,19 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  // Decide GL+GLSL versions
-#ifdef __APPLE__
-  // GL 3.2 + GLSL 150
-  const char* glsl_version = "#version 150";
+  // Use GL 3.2 (All Platforms)
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+
+  // Decide GLSL version
+#ifdef __APPLE__
+  // GLSL 150
+  const char* glsl_version = "#version 150";
 #else
-  // GL 3.0 + GLSL 130
+  // GLSL 130
   const char* glsl_version = "#version 130";
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-  //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
-  //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
 #endif
 
   // Create window with graphics context
