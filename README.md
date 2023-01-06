@@ -1,24 +1,9 @@
-
-# VTK Widget for DearImGUI
-
-* An effort to incorporate VTK's dataset visualization capabilities with versatility of DearImGUI
-* Renders VTK content into a viewport within an ImGui Window
-* Look in `main.cpp` for details on example usage
-
-## Changes vs. [trlsmax/imgui-vtk](https://github.com/trlsmax/imgui-vtk)
-- `imgui_impl_vtk` files are now deprecated in favor of using `VtkViewer` objects
-- Uses VTK OpenGLRenderWindow's framebuffer directly
-- Fixes/upgrades IO behavior
-- Uses ImGui's `docking` branch (but doesn't depend on it; you can certainly avoid/revert this if desired)
-- Includes `imgui`, `gl3w`, and `glfw` directly as git submodules in this repository
-- Builds components separately in `CMakeLists.txt` and links them as static libraries
-  - `CMakeLists-alt.txt` is more similar to the old `CMakeLists.txt`, building everything together from source
-- Supports multiple independent `VtkViewer` instances/windows
-- Usage (see `main.cpp` for details)
-  - Previous: ImGui window was created for you
-  - Current: You must create (and end) ImGui windows yourself
-    - This allows you to place other widgets in same window as VTK "viewport" and control all aspects of the ImGui Window yourself
-- **Note: For the sake of cleanliness and readability, most preprocessor directives were removed.** Files no longer auto-detect your OpenGL loader. While everything is currently set up for OpenGL3 + GLFW + GL3W, you may need to adjust `#include` statements, etc. to match your use case.
+# imgui-vtk
+- Incorporate VTK's dataset visualization capabilities with versatility of Dear ImGui
+  - Multiple independent `VtkViewer` instances can be used in the same program to display multiple VTK scenes simultaneously
+- Uses VTK's OpenGLRenderWindow class
+  - Renders to texture and displays the texture natively with ImGui
+- Compatible with both ImGui's `main` and `docking` branches
 
 ![](vtkImGuiDemo.gif)
 
@@ -32,39 +17,13 @@
     - See `CMakeLists-alt.txt` for more details
 - See `main.cpp`
 
-```
-dataset = ..
-filter = ..
-mapper1 = ..
-mapper2 = ..
-actor1 = ..
-actor2 = ..
-filter->SetInputData(dataset);
-
-mapper1->SetInputConnection(filter->GetOutputPort(0));
-mapper2->SetInputConnection(filter->GetOutputPort(1));
-...
-
-actor1->SetMapper(mapper1);
-actor2->SetMapper(mapper2);
-...
-
-ImguiInit...
-
-VtkViewer myVtkViewer;               // create VTKViewer object
-myVtkViewer.addActor(myActor);       // give it an actor
-
-while (!terminate)
-{
-  Imgui new frame..
-  custom imgui windows..
-
-  // VTK Viewer Window
-  ImGui::Begin("My VTK Viewer");
-  myVtkViewer.render();              // render VtkViewer within window
-  ImGui::End();
-
-  ImGui::Render();
-  ImGui_Impl_xxx_RenderDrawData();
-}
-```
+## Notes
+- `imgui`, `gl3w`, and `glfw` are included in this repository as git submodules
+  - For integration into an existing project, only `VtkViewer.h` and `VtkViewer.cpp` are needed. However, they will need to be linked with or built alongside Dear ImGui and VTK
+- Dependencies are built separately in `CMakeLists.txt` then linked together as static libraries
+  - `CMakeLists-alt.txt` builds everything together from source
+- Usage (see [`main.cpp`](main.cpp) for details)
+  - You must create and end ImGui windows yourself
+    - Allows for other widgets to be placed in the same ImGui window as the VTK "viewport"
+    - Allows for full control over window size, behavior, etc. via Dear ImGui API
+- **Note: For the sake of cleanliness and readability, most ImGui preprocessor directives were removed.** Files no longer auto-detect your OpenGL loader. While everything is currently set up for OpenGL3 + GLFW + GL3W, you may need to adjust `#include` statements, etc. to match your use case.
