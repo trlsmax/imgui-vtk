@@ -194,7 +194,7 @@ void VtkViewer::removeActor(const vtkSmartPointer<vtkProp>& actor){
 }
 
 void VtkViewer::setViewportSize(const ImVec2 newSize){
-	if (((viewportWidth == newSize.x && viewportHeight == newSize.y) || viewportWidth <= 0 || viewportHeight <= 0) && !firstRender){
+	if (viewportWidth <= 0 || viewportHeight <= 0 || (!firstRender && (viewportWidth == newSize.x && viewportHeight == newSize.y))){
 		return;
 	}
 
