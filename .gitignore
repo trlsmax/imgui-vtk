@@ -1,7 +1,9 @@
 out/
 build/
+vcpkg_installed/
 .vs/
 *.json
+!vcpkg.json
 .DS_Store
 .vscode/
 
