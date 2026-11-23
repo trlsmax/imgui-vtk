@@ -1,0 +1,28 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+find_dependency(VTK COMPONENTS
+  @IMGUI_VTK_VTK_COMPONENTS_TEXT@
+)
+
+# imgui, glfw3 and gl3w are not part of the installed export set. The library is
+# built against whichever copy the project used, while installed consumers are
+# expected to provide the same packages (for example through vcpkg).
+find_dependency(imgui CONFIG)
+find_dependency(glfw3 CONFIG)
+find_dependency(gl3w CONFIG)
+
+include("${CMAKE_CURRENT_LIST_DIR}/imgui-vtk-targets.cmake")
+
+set_property(TARGET imgui-vtk::imgui_vtk APPEND PROPERTY INTERFACE_LINK_LIBRARIES
+  imgui::imgui glfw unofficial::gl3w::gl3w)
+
+# VTK modules need explicit registration when VTK is built statically.
+function(imgui_vtk_autoinit target)
+  if(VTK_VERSION VERSION_LESS "9.0.0")
+    include(${VTK_USE_FILE})
+  else()
+    vtk_module_autoinit(TARGETS ${target} MODULES ${VTK_LIBRARIES})
+  endif()
+endfunction()

@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 11)
 # set(CMAKE_VERBOSE_MAKEFILE 1)
 set(APP_VERSION_MAJOR 1)
 set(APP_VERSION_MINOR 0)
-set(EXEC_NAME imgui_vtk)
+set(EXEC_NAME imgui_vtk_demo)
 
 # Find OpenGL
 find_package(OpenGL REQUIRED)
@@ -56,12 +56,15 @@ file(GLOB imgui_src ${imgui_dir}/*.cpp)
 set(imgui_backend ${imgui_dir}/backends/imgui_impl_glfw.cpp ${imgui_dir}/backends/imgui_impl_opengl3.cpp)
 
 # ImGui-VTK (VTK Viewer class)
-set(imgui_vtk_viewer_dir ${CMAKE_CURRENT_SOURCE_DIR})
-set(imgui_vtk_viewer_src ${imgui_vtk_viewer_dir}/VtkViewer.cpp)
+set(imgui_vtk_viewer_dir ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(imgui_vtk_viewer_src ${CMAKE_CURRENT_SOURCE_DIR}/src/VtkViewer.cpp)
+set(imgui_vtk_demo_src ${CMAKE_CURRENT_SOURCE_DIR}/example/main.cpp)
+set(imgui_vtk_demo_header ${CMAKE_CURRENT_SOURCE_DIR}/example/imgui_vtk_demo.h)
 
 # This project's executable
 add_executable(${EXEC_NAME}
-  main.cpp
+  ${imgui_vtk_demo_src}
+  ${imgui_vtk_demo_header}
   ${gl3w_src}
   ${imgui_src}
   ${imgui_backend}
