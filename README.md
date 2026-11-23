@@ -17,6 +17,16 @@
     - See `CMakeLists-alt.txt` for more details
 - See `main.cpp`
 
+## Build with vcpkg
+`vcpkg.json` pins imgui, glfw3, gl3w, and VTK, so the git submodules are not needed. With `VCPKG_ROOT` pointing at a vcpkg checkout:
+
+```sh
+cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+cmake --build build --config Release
+```
+
+The first configure builds the pinned VTK port, which takes a while. The default submodule-based build above is unchanged; `CMakeLists.txt` only takes the vcpkg path when the packages are found.
+
 ## Notes
 - `imgui`, `gl3w`, and `glfw` are included in this repository as git submodules
   - For integration into an existing project, only `VtkViewer.h` and `VtkViewer.cpp` are needed. However, they will need to be linked with or built alongside Dear ImGui and VTK

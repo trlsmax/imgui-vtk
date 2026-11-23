@@ -20,6 +20,20 @@ if (APPLE)
 	target_compile_definitions(${EXEC_NAME} PRIVATE GL_SILENCE_DEPRECATION)
 endif()
 
+# Dependencies: use vcpkg-provided packages when configured with a vcpkg toolchain,
+# otherwise build the gl3w / glfw / imgui submodules from source.
+find_package(imgui CONFIG QUIET)
+if(imgui_FOUND)
+	find_package(glfw3 CONFIG REQUIRED)
+	find_package(gl3w CONFIG REQUIRED)
+	# Reuse the package targets under the names used below
+	add_library(imgui INTERFACE)
+	target_link_libraries(imgui INTERFACE imgui::imgui)
+	add_library(gl3w INTERFACE)
+	target_link_libraries(gl3w INTERFACE unofficial::gl3w::gl3w)
+	target_link_libraries(${EXEC_NAME} gl3w glfw imgui)
+else()
+
 # OpenGL Loader - GL3W
 # This can be replaced with your own OpenGL Loader
 # Either compile it as a static library like this example
@@ -55,6 +69,8 @@ add_library(imgui STATIC ${imgui_src} ${imgui_backend})
 target_include_directories(imgui PUBLIC ${imgui_dir} ${imgui_dir}/backends)
 target_link_libraries(imgui glfw)
 target_link_libraries(${EXEC_NAME} imgui)
+
+endif()
 
 # VTK
 find_package(VTK COMPONENTS 

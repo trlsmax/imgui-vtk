@@ -1,0 +1,44 @@
+{
+  "dependencies": [
+    {
+      "name": "imgui",
+      "version>=": "1.90.7",
+      "features": [
+        "docking-experimental",
+        "glfw-binding",
+        "opengl3-binding"
+      ]
+    },
+    {
+      "name": "glfw3",
+      "version>=": "3.4"
+    },
+    {
+      "name": "gl3w",
+      "version>=": "2018-05-31#5"
+    },
+    {
+      "name": "vtk",
+      "version>=": "9.3.0-pv5.12.0#4"
+    }
+  ],
+  "builtin-baseline": "67cc1677c3bf5c23ea14b9d2416c7422fdeac492",
+  "overrides": [
+    {
+      "name": "imgui",
+      "version": "1.90.7"
+    },
+    {
+      "name": "glfw3",
+      "version": "3.4"
+    },
+    {
+      "name": "gl3w",
+      "version": "2018-05-31#5"
+    },
+    {
+      "name": "vtk",
+      "version": "9.3.0-pv5.12.0#4"
+    }
+  ]
+}
